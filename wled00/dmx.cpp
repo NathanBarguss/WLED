@@ -37,6 +37,17 @@ void handleDMX()
     byte b = B(in);
 
     int DMXFixtureStart = DMXStart + (DMXGap * (i - DMXStartLED));
+
+    //NBARGUSS: We want DMX output AS WELL AS A LOT OF LEDs on the prototype.
+    // using long counts of LEDs and multiple channels per led makes the current 
+    // implementation really slow!.
+    // Assuming minimum of 4 channels per fixture, and 512 possible channels on the 
+    // DMX bus, we never want an outer loop greater than 128 
+    // if we're past address 512, break out!
+    if(DMXFixtureStart > 512) {
+      break;
+    }
+
     for (int j = 0; j < DMXChannels; j++) {
       int DMXAddr = DMXFixtureStart + j;
       switch (DMXFixtureMap[j]) {
