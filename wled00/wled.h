@@ -426,6 +426,13 @@ WLED_GLOBAL bool e131Multicast _INIT(false);                      // multicast o
 WLED_GLOBAL bool e131SkipOutOfSequence _INIT(false);              // freeze instead of flickering
 WLED_GLOBAL uint16_t pollReplyCount _INIT(0);                     // count number of replies for ArtPoll node report
 
+// NATHAN: Add thse for testing.
+WLED_GLOBAL int DMXframesSinceLastMove _INIT(0);
+WLED_GLOBAL int DMXframesUntilNextMove _INIT(100);
+WLED_GLOBAL bool DMXanmationChangeOkay _INIT(true);
+WLED_GLOBAL int DMXverticalCh _INIT(134);
+WLED_GLOBAL int DMXhorizontalCh _INIT(134);
+
 // mqtt
 WLED_GLOBAL unsigned long lastMqttReconnectAttempt _INIT(0);  // used for other periodic tasks too
 #ifndef WLED_DISABLE_MQTT
