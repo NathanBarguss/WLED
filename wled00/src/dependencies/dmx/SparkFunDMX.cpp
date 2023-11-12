@@ -40,6 +40,7 @@ static const int txPin = 17;        // NBARGUSS: SECOND UART on ESP32 transmit D
 
 // NBARGUSS: We want to send data when we loop round, let the system be 'faster'
 static int ngbLastByte = 0;
+static const int channelsPerLoop = 16;
 
 //DMX value array and size. Entry 0 will hold startbyte
 static uint8_t dmxData[dmxMaxChannel] = { 0 };
@@ -141,12 +142,17 @@ void SparkFunDMX::write(int Channel, uint8_t value) {
   dmxData[Channel] = value; //add one to account for start byte
 }
 
-
+#ifdef NATHAN_MODE
 
 void SparkFunDMX::update() {
   if (_READWRITE == _WRITE)
   {
-    uint8_t dmxSingleChannel[1] = { dmxData[ngbLastByte] };
+    uint8_t partialDmxData[channelsPerLoop];
+    
+    for (int j = 0; j < channelsPerLoop; j++)
+    {
+      partialDmxData[j] = dmxData[ngbLastByte + j];
+    }
 
     if (ngbLastByte >= dmxMaxChannel)
     {
@@ -181,7 +187,7 @@ void SparkFunDMX::update() {
     //Send DMX data
     DMXSerial.begin(DMXSPEED, DMXFORMAT, rxPin, txPin);//Begin the Serial port
     //DMXSerial.write(dmxData, chanSize);
-    DMXSerial.write(dmxSingleChannel, 1);
+    DMXSerial.write(partialDmxData, channelsPerLoop);
     DMXSerial.flush();
     DMXSerial.end();//clear our DMX array, end the Hardware Serial port
 
@@ -190,7 +196,7 @@ void SparkFunDMX::update() {
     FDEBUG_PRINTF("CH %d St %5.2f Bk %5.2f Da %5.2f \n" , ngbLastByte, float(beginCost),float(breakCost), float(dataCost));
     sectionStartMilis = millis();
 
-    ngbLastByte++;
+    ngbLastByte = ngbLastByte + channelsPerLoop;
   }
 #if !defined(DMX_SEND_ONLY)
   else if (_READWRITE == _READ)//In a perfect world, this function ends serial communication upon packet completion and attaches RX to a CHANGE interrupt so the start code can be read again
@@ -215,6 +221,52 @@ void SparkFunDMX::update() {
   }
 #endif
 }
+
+#else
+
+void SparkFunDMX::update() {
+  if (_READWRITE == _WRITE)
+  {
+    //Send DMX break
+    digitalWrite(txPin, HIGH);
+    DMXSerial.begin(BREAKSPEED, BREAKFORMAT, rxPin, txPin);//Begin the Serial port
+    DMXSerial.write(0);
+    DMXSerial.flush();
+    delay(1);
+    DMXSerial.end();
+    
+    //Send DMX data
+    DMXSerial.begin(DMXSPEED, DMXFORMAT, rxPin, txPin);//Begin the Serial port
+    DMXSerial.write(dmxData, chanSize);
+    DMXSerial.flush();
+    DMXSerial.end();//clear our DMX array, end the Hardware Serial port
+  }
+#if !defined(DMX_SEND_ONLY)
+  else if (_READWRITE == _READ)//In a perfect world, this function ends serial communication upon packet completion and attaches RX to a CHANGE interrupt so the start code can be read again
+  { 
+	if (_startCodeDetected == true)
+	{
+		while (DMXSerial.available())
+		{
+			dmxData[currentChannel++] = DMXSerial.read();
+		}
+	if (currentChannel > chanSize) //Set the channel counter back to 0 if we reach the known end size of our packet
+	{
+		
+      portENTER_CRITICAL(&timerMux);
+	  _startCodeDetected = false;
+	  DMXSerial.flush();
+	  DMXSerial.end();
+      portEXIT_CRITICAL(&timerMux);
+	  currentChannel = 0;
+	}
+	}
+  }
+#endif
+}
+
+
+#endif
 
 // Function to update the DMX bus
 #endif
