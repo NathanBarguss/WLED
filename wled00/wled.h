@@ -35,7 +35,7 @@
 #else
   #undef WLED_ENABLE_ADALIGHT      // disable has priority over enable
 #endif
-#define WLED_ENABLE_DMX          // uses 3.5kb (use LEDPIN other than 2)
+//#define WLED_ENABLE_DMX          // uses 3.5kb (use LEDPIN other than 2)
 #define WLED_ENABLE_JSONLIVE     // peek LED output via /json/live (WS binary peek is always enabled)
 #ifndef WLED_DISABLE_LOXONE
   #define WLED_ENABLE_LOXONE       // uses 1.2kb
@@ -777,6 +777,20 @@ WLED_GLOBAL volatile uint8_t jsonBufferLock _INIT(0);
 #else
   #define DEBUGOUT Serial
 #endif
+
+#ifdef WLED_DEBUG_FOCUS
+  #ifndef ESP8266
+  #include <rom/rtc.h>
+  #endif
+  #define FDEBUG_PRINT(x) DEBUGOUT.print(x)
+  #define FDEBUG_PRINTLN(x) DEBUGOUT.println(x)
+  #define FDEBUG_PRINTF(x...) DEBUGOUT.printf(x)
+#else
+  #define FDEBUG_PRINT(x)
+  #define FDEBUG_PRINTLN(x)
+  #define FDEBUG_PRINTF(x...)
+#endif
+
 
 #ifdef WLED_DEBUG
   #ifndef ESP8266

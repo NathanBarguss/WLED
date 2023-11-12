@@ -531,6 +531,11 @@ void RotaryEncoderUIUsermod::setup()
   }
 #endif
 
+  FDEBUG_PRINTLN(F("RO ALT PINS:")); 
+  FDEBUG_PRINTLN(pinA); 
+  FDEBUG_PRINTLN(pinB); 
+  FDEBUG_PRINTLN(pinC); 
+
   initDone = true;
   Enc_A = readPin(pinA); // Read encoder pins
   Enc_B = readPin(pinB);
@@ -639,8 +644,12 @@ void RotaryEncoderUIUsermod::loop()
     Enc_B = readPin(pinB);
     if ((Enc_A) && (!Enc_A_prev))
     { // A has gone from high to low
+      FDEBUG_PRINT(F(" RENC PIN A (")); 
+      FDEBUG_PRINTLN(F(") has changed "));  
       if (Enc_B == LOW)    //changes to LOW so that then encoder registers a change at the very end of a pulse
       { // B is high so clockwise
+        FDEBUG_PRINT(F(" RENC PIN B (")); 
+        FDEBUG_PRINTLN(F(") is LOW "));  
         switch(select_state) {
           case  0: changeBrightness(true);      break;
           case  1: changeEffectSpeed(true);     break;
@@ -658,6 +667,8 @@ void RotaryEncoderUIUsermod::loop()
       }
       else if (Enc_B == HIGH)
       { // B is low so counter-clockwise
+        FDEBUG_PRINT(F(" RENC PIN B (")); 
+        FDEBUG_PRINTLN(F(") is HIGH "));  
         switch(select_state) {
           case  0: changeBrightness(false);      break;
           case  1: changeEffectSpeed(false);     break;

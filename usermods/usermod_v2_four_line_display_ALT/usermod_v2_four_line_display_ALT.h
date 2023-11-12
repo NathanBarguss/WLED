@@ -375,7 +375,7 @@ void FourLineDisplayUsermod::setVcomh(bool highContrast) {
 void FourLineDisplayUsermod::startDisplay() {
   if (type == NONE || !enabled) return;
   lineHeight = u8x8->getRows() > 4 ? 2 : 1;
-  DEBUG_PRINTLN(F("Starting display."));
+  FDEBUG_PRINT(F("Starting display."));
   u8x8->setBusClock(ioFrequency);  // can be used for SPI too
   u8x8->begin();
   setFlipMode(flip);
@@ -536,19 +536,45 @@ void FourLineDisplayUsermod::sleepOrClock(bool enabled) {
 void FourLineDisplayUsermod::setup() {
   bool isSPI = (type == SSD1306_SPI || type == SSD1306_SPI64 || type == SSD1309_SPI64);
 
+  FDEBUG_PRINTLN(F("DISPLAY Config:"));
+  
+  FDEBUG_PRINT(F(" type: "));
+  FDEBUG_PRINTLN(type);
+
+  FDEBUG_PRINT(F(" spi_sclk: "));
+  FDEBUG_PRINTLN(spi_sclk);
+
+  FDEBUG_PRINT(F(" spi_mosi: "));
+  FDEBUG_PRINTLN(spi_mosi);
+
+  FDEBUG_PRINT(F(" ioPin[0]: "));
+  FDEBUG_PRINTLN(ioPin[0]);
+
+  FDEBUG_PRINT(F(" ioPin[1]: "));
+  FDEBUG_PRINTLN(ioPin[1]);
+
+  FDEBUG_PRINT(F(" type: "));
+  FDEBUG_PRINTLN(type);
+
+
+
   // check if pins are -1 and disable usermod as PinManager::allocateMultiplePins() will accept -1 as a valid pin
   if (isSPI) {
     if (spi_sclk<0 || spi_mosi<0 || ioPin[0]<0 || ioPin[1]<0 || ioPin[1]<0) {
+      FDEBUG_PRINTLN(F(" WARING: Setting Display type to NONE as SPI pins are missing!"));
       type = NONE;
     } else {
       PinManagerPinType cspins[3] = { { ioPin[0], true }, { ioPin[1], true }, { ioPin[2], true } };
       if (!pinManager.allocateMultiplePins(cspins, 3, PinOwner::UM_FourLineDisplay)) { type = NONE; }
     }
   } else {
-    if (i2c_scl<0 || i2c_sda<0) { type=NONE; }
+    if (i2c_scl<0 || i2c_sda<0) { 
+      type=NONE;
+      FDEBUG_PRINT(F(" WARNING: Setting Display type to NONE as I2C mode is set, but pins are missing! ")); 
+    }
   }
 
-  DEBUG_PRINTLN(F("Allocating display."));
+  FDEBUG_PRINT(F("Allocating display."));
   switch (type) {
     // U8X8 uses Wire (or Wire1 with 2ND constructor) and will use existing Wire properties (calls Wire.begin() though)
     case SSD1306:       u8x8 = (U8X8 *) new U8X8_SSD1306_128X32_UNIVISION_HW_I2C(); break;
@@ -565,7 +591,7 @@ void FourLineDisplayUsermod::setup() {
   }
 
   if (nullptr == u8x8) {
-    DEBUG_PRINTLN(F("Display init failed."));
+    FDEBUG_PRINT(F("Display init failed."));
     if (isSPI) {
       pinManager.deallocateMultiplePins((const uint8_t*)ioPin, 3, PinOwner::UM_FourLineDisplay);
     }
@@ -573,7 +599,10 @@ void FourLineDisplayUsermod::setup() {
     return;
   }
 
+  FDEBUG_PRINT(F(" Calling startDsplay() "));
   startDisplay();
+
+  FDEBUG_PRINT(F(" Creating Display Task "));
   onUpdateBegin(false);  // create Display task
   initDone = true;
 }
@@ -1092,7 +1121,7 @@ bool FourLineDisplayUsermod::handleButton(uint8_t b) {
     if (now - buttonPressedTime > 600) { //long press
       //TODO: handleButton() handles button 0 without preset in a different way for double click
       //so we need to override with same behaviour
-      //DEBUG_PRINTLN(F("4LD action."));
+      //FDEBUG_PRINT(F("4LD action."));
       //if (!buttonLongPressed) longPressAction(0);
       buttonLongPressed = true;
       return false;
@@ -1246,7 +1275,7 @@ void FourLineDisplayUsermod::addToConfig(JsonObject& root) {
   top[FPSTR(_clockMode)]     = (bool) clockMode;
   top[FPSTR(_showSeconds)]   = (bool) showSeconds;
   top[FPSTR(_busClkFrequency)] = ioFrequency/1000;
-  DEBUG_PRINTLN(F("4 Line Display config saved."));
+  FDEBUG_PRINT(F("4 Line Display config saved."));
 }
 
 /*
@@ -1265,7 +1294,7 @@ bool FourLineDisplayUsermod::readFromConfig(JsonObject& root) {
   JsonObject top = root[FPSTR(_name)];
   if (top.isNull()) {
     DEBUG_PRINT(FPSTR(_name));
-    DEBUG_PRINTLN(F(": No config found. (Using defaults.)"));
+    FDEBUG_PRINT(F(": No config found. (Using defaults.)"));
     return false;
   }
 
@@ -1292,9 +1321,9 @@ bool FourLineDisplayUsermod::readFromConfig(JsonObject& root) {
   if (!initDone) {
     // first run: reading from cfg.json
     type = newType;
-    DEBUG_PRINTLN(F(" config loaded."));
+    FDEBUG_PRINT(F(" config loaded."));
   } else {
-    DEBUG_PRINTLN(F(" config (re)loaded."));
+    FDEBUG_PRINT(F(" config (re)loaded."));
     // changing parameters from settings page
     bool pinsChanged = false;
     for (byte i=0; i<3; i++) if (ioPin[i] != oldPin[i]) { pinsChanged = true; break; }

@@ -121,7 +121,7 @@ void handleDMX()
   dmx.write(DMXStart + 10, calc_brightness ? (w * brightness) / 255 : w);  // CH 11 // WHITE 
   dmx.write(DMXStart + 11, 255);             // Ch 12 // Laser Brightness
   dmx.write(DMXStart + 12, 0);               // Front Light Control : 0-30 none ; 31-127 Fast Auto; 128-249 Slow Auto; 250-255 Sound Contro
-  dmx.write(DMXStart + 13, 0);             // Ch 14 // Rear light Control : 0-4 Light Ring Off; 5-109 Band Color; 110-255 Self Control
+  dmx.write(DMXStart + 13, 0);               // Ch 14 // Rear light Control : 0-4 Light Ring Off; 5-109 Band Color; 110-255 Self Control
   dmx.write(DMXStart + 14, 0);               // Ch 15 // 0-249 No Effect ; 250-255 System Reset.
 
 
