@@ -36,11 +36,11 @@ void handleDMX()
     DMXanmationChangeOkay = true;
   }
 
-   // check if no shutter channel is set
-   for (byte i = 0; i < DMXChannels; i++)
-   {
-     if (DMXFixtureMap[i] == 5) calc_brightness = false;
-   }
+  // check if no shutter channel is set
+  for (byte i = 0; i < DMXChannels; i++)
+  {
+    if (DMXFixtureMap[i] == 5) calc_brightness = false;
+  }
 
   uint16_t len = strip.getLengthTotal();
   for (int i = DMXStartLED; i < len; i++) {        // uses the amount of LEDs as fixture count
@@ -99,7 +99,7 @@ void handleDMX()
     DMXhorizontalCh = random(0,255);
     DMXverticalCh = random(0,255);
   }
-  
+
   // OVERWRITE!!
 
   uint32_t in = strip.getPixelColor(5);     // get the colors for the individual fixtures as suggested by Aircoookie in issue #462
@@ -132,7 +132,8 @@ void initDMX() {
  #ifdef ESP8266
   dmx.init(512);        // initialize with bus length
  #else
-  dmx.initWrite(512);  // initialize with bus length
+  //dmx.initWrite(512);  // initialize with bus length
+  dmx.initWrite(16);
  #endif
 }
 
